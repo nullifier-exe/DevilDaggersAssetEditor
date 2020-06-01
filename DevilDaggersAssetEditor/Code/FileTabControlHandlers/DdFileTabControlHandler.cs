@@ -1,8 +1,11 @@
 ﻿using DevilDaggersAssetCore;
 using DevilDaggersAssetCore.Assets;
 using DevilDaggersAssetCore.BinaryFileHandlers;
+using DevilDaggersAssetCore.Compression;
 using DevilDaggersAssetCore.ModFiles;
+using Microsoft.Win32;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 
@@ -30,6 +33,21 @@ namespace DevilDaggersAssetEditor.Code.FileTabControlHandlers
 			fileTypeMenuItem.Items.Add(modelImport);
 			fileTypeMenuItem.Items.Add(shaderImport);
 			fileTypeMenuItem.Items.Add(textureImport);
+
+			fileTypeMenuItem.Items.Add(new Separator());
+
+			MenuItem compressDd = new MenuItem { Header = "Compress DD" };
+			compressDd.Click += (sender, e) =>
+			{
+				OpenFileDialog openDialog = new OpenFileDialog();
+				bool? openResult = openDialog.ShowDialog();
+				if (openResult.HasValue && openResult.Value)
+				{
+					byte[] compressedBytes = Compressor.CompressDd(openDialog.FileName);
+					File.WriteAllBytes($"{openDialog.FileName}.cdd", compressedBytes);
+				}
+			};
+			fileTypeMenuItem.Items.Add(compressDd);
 
 			return fileTypeMenuItem;
 		}
