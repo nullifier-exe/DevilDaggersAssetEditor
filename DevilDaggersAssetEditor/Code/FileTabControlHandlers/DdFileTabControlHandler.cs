@@ -43,7 +43,7 @@ namespace DevilDaggersAssetEditor.Code.FileTabControlHandlers
 				bool? openResult = openDialog.ShowDialog();
 				if (openResult.HasValue && openResult.Value)
 				{
-					byte[] compressedBytes = Compressor.CompressDd(openDialog.FileName);
+					byte[] compressedBytes = Compressor.Compress(openDialog.FileName);
 					File.WriteAllBytes($"{openDialog.FileName}.cdd", compressedBytes);
 				}
 			};

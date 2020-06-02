@@ -1,6 +1,5 @@
 ﻿using DevilDaggersAssetCore.Assets;
 using DevilDaggersAssetCore.Chunks;
-using DevilDaggersAssetCore.Info;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -12,15 +11,20 @@ namespace DevilDaggersAssetCore.Compression
 {
 	public class CompressedChunk
 	{
-		public byte Type { get; set; }
-		public string Name { get; set; }
-		public byte[] Buffer { get; set; }
+		public byte Type { get; }
+		public string Name { get; }
+		public uint Size { get; }
+		public byte[] Buffer { get; private set; }
 
-		public CompressedChunk(AbstractChunk chunk)
+		public CompressedChunk(byte type, string name, uint size)
 		{
-			Type = (byte)ChunkInfo.All.FirstOrDefault(c => c.ChunkType == chunk.GetType()).BinaryTypes[0];
-			Name = chunk.Name;
+			Type = type;
+			Name = name;
+			Size = size;
+		}
 
+		public void Compress(AbstractChunk chunk)
+		{
 			if (chunk is TextureChunk textureChunk)
 			{
 				CompressTexture(textureChunk);
@@ -49,6 +53,16 @@ namespace DevilDaggersAssetCore.Compression
 			//{
 
 			//}
+			//else throw not implemented
+		}
+
+		public byte[] Extract()
+		{
+			return Type switch
+			{
+				0x02 => ExtractTexture(),
+				_ => Buffer
+			};
 		}
 
 		private void CompressTexture(TextureChunk textureChunk)
@@ -75,6 +89,11 @@ namespace DevilDaggersAssetCore.Compression
 			new Bitmap(bitmap).Save(memoryStream, ImageFormat.Png);
 
 			Buffer = memoryStream.ToArray();
+		}
+
+		private byte[] ExtractTexture()
+		{
+
 		}
 	}
 }

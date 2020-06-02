@@ -1,5 +1,6 @@
 ﻿using DevilDaggersAssetCore.BinaryFileHandlers;
 using DevilDaggersAssetCore.Chunks;
+using DevilDaggersAssetCore.Info;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +13,7 @@ namespace DevilDaggersAssetCore.Compression
 	{
 		private static readonly byte ddIdentifier = 66;
 
-		public static byte[] CompressDd(string inputPath)
+		public static byte[] Compress(string inputPath)
 		{
 			byte[] sourceFileBytes = File.ReadAllBytes(inputPath);
 
@@ -30,7 +31,8 @@ namespace DevilDaggersAssetCore.Compression
 			List<CompressedChunk> compressedChunks = new List<CompressedChunk>();
 			foreach (AbstractChunk chunk in chunks)
 			{
-				CompressedChunk compressedChunk = new CompressedChunk(chunk);
+				CompressedChunk compressedChunk = new CompressedChunk((byte)ChunkInfo.All.FirstOrDefault(c => c.ChunkType == chunk.GetType()).BinaryTypes[0], chunk.Name, (uint)chunk.Buffer.Length);
+				compressedChunk.Compress(chunk);
 				compressedChunks.Add(compressedChunk);
 			}
 
@@ -55,6 +57,48 @@ namespace DevilDaggersAssetCore.Compression
 			finalStream.Write(dataStream.ToArray(), 0, (int)dataStream.Length);
 
 			return finalStream.ToArray();
+		}
+
+		public static byte[] Extract(string inputPath)
+		{
+			byte[] sourceFileBytes = File.ReadAllBytes(inputPath);
+
+			if (sourceFileBytes.Length == 0)
+				throw new Exception("Empty file.");
+			if (sourceFileBytes[0] != ddIdentifier)
+				throw new Exception($"Invalid file format. The magic number value is incorrect:\n\nHeader value 1: {sourceFileBytes[0]} should be {ddIdentifier}");
+
+			ushort tocLength = BitConverter.ToUInt16(sourceFileBytes, 1);
+			byte[] tocBuffer = new byte[tocLength];
+			Buffer.BlockCopy(sourceFileBytes, 3, tocBuffer, 0, tocLength);
+
+			List<CompressedChunk> compressedChunks = ReadChunks(tocBuffer);
+			foreach (CompressedChunk compressedChunk in compressedChunks)
+			{
+				byte[] chunkBytes = compressedChunk.Extract();
+			}
+		}
+
+		private static List<CompressedChunk> ReadChunks(byte[] tocBuffer)
+		{
+			List<CompressedChunk> chunks = new List<CompressedChunk>();
+
+			int i = 0;
+			while (i < tocBuffer.Length - 5) // TODO: Might still get out of range maybe... (5 bytes per chunk, but name length is variable)
+			{
+				string name = Utils.ReadNullTerminatedString(tocBuffer, i);
+				i += name.Length + 1; // + 1 to include null terminator.
+
+				byte type = tocBuffer[i];
+				i += sizeof(byte);
+
+				uint size = BitConverter.ToUInt32(tocBuffer, i);
+				i += sizeof(uint);
+
+				chunks.Add(new CompressedChunk(type, name, size));
+			}
+
+			return chunks;
 		}
 	}
 }
