@@ -4,6 +4,7 @@ using Microsoft.WindowsAPICodePack.Dialogs;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -61,9 +62,12 @@ namespace DevilDaggersAssetEditor.Gui.Windows
 
 		private void BrowseDevilDaggersRootFolderButton_Click(object sender, RoutedEventArgs e)
 		{
-			using CommonOpenFileDialog dialog = new CommonOpenFileDialog { IsFolderPicker = true, InitialDirectory = LabelDevilDaggersRootFolder.Content.ToString() };
-			CommonFileDialogResult result = dialog.ShowDialog();
+			using CommonOpenFileDialog dialog = new CommonOpenFileDialog { IsFolderPicker = true };
+			string initDir = LabelDevilDaggersRootFolder.Content.ToString();
+			if (Directory.Exists(initDir))
+				dialog.InitialDirectory = initDir;
 
+			CommonFileDialogResult result = dialog.ShowDialog();
 			if (result == CommonFileDialogResult.Ok)
 				LabelDevilDaggersRootFolder.Content = dialog.FileName;
 
@@ -72,9 +76,12 @@ namespace DevilDaggersAssetEditor.Gui.Windows
 
 		private void BrowseModsRootFolderButton_Click(object sender, RoutedEventArgs e)
 		{
-			using CommonOpenFileDialog dialog = new CommonOpenFileDialog { IsFolderPicker = true, InitialDirectory = LabelModsRootFolder.Content.ToString() };
-			CommonFileDialogResult result = dialog.ShowDialog();
+			using CommonOpenFileDialog dialog = new CommonOpenFileDialog { IsFolderPicker = true };
+			string initDir = LabelModsRootFolder.Content.ToString();
+			if (Directory.Exists(initDir))
+				dialog.InitialDirectory = initDir;
 
+			CommonFileDialogResult result = dialog.ShowDialog();
 			if (result == CommonFileDialogResult.Ok)
 				LabelModsRootFolder.Content = dialog.FileName;
 
@@ -83,9 +90,12 @@ namespace DevilDaggersAssetEditor.Gui.Windows
 
 		private void BrowseAssetsRootFolderButton_Click(object sender, RoutedEventArgs e)
 		{
-			using CommonOpenFileDialog dialog = new CommonOpenFileDialog { IsFolderPicker = true, InitialDirectory = LabelAssetsRootFolder.Content.ToString() };
-			CommonFileDialogResult result = dialog.ShowDialog();
+			using CommonOpenFileDialog dialog = new CommonOpenFileDialog { IsFolderPicker = true };
+			string initDir = LabelAssetsRootFolder.Content.ToString();
+			if (Directory.Exists(initDir))
+				dialog.InitialDirectory = initDir;
 
+			CommonFileDialogResult result = dialog.ShowDialog();
 			if (result == CommonFileDialogResult.Ok)
 				LabelAssetsRootFolder.Content = dialog.FileName;
 
@@ -96,7 +106,7 @@ namespace DevilDaggersAssetEditor.Gui.Windows
 		{
 			Process process = ProcessUtils.GetDevilDaggersProcess();
 			if (process != null)
-				LabelDevilDaggersRootFolder.Content = process.MainModule.FileName;
+				LabelDevilDaggersRootFolder.Content = Path.GetDirectoryName(process.MainModule.FileName);
 			else
 				App.Instance.ShowMessage("Devil Daggers process not found", "Please make sure Devil Daggers is running and try again.");
 		}
