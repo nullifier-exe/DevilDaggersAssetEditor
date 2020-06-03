@@ -49,6 +49,19 @@ namespace DevilDaggersAssetEditor.Code.FileTabControlHandlers
 			};
 			fileTypeMenuItem.Items.Add(compressDd);
 
+			MenuItem extractCdd = new MenuItem { Header = "Extract cdd" };
+			extractCdd.Click += (sender, e) =>
+			{
+				OpenFileDialog openDialog = new OpenFileDialog { Filter = "Compressed DD files (*.cdd)|*.cdd" };
+				bool? openResult = openDialog.ShowDialog();
+				if (openResult.HasValue && openResult.Value)
+				{
+					byte[] extractedBytes = Compressor.Extract(openDialog.FileName);
+					File.WriteAllBytes($"{openDialog.FileName}-extracted-from-cdd", extractedBytes);
+				}
+			};
+			fileTypeMenuItem.Items.Add(extractCdd);
+
 			return fileTypeMenuItem;
 		}
 
