@@ -29,9 +29,10 @@ namespace DevilDaggersAssetCore.Compression
 			}
 
 			List<CompressedChunk> compressedChunks = new List<CompressedChunk>();
-			foreach (AbstractChunk chunk in chunks)
+			foreach (AbstractResourceChunk chunk in chunks)
 			{
-				CompressedChunk compressedChunk = new CompressedChunk((byte)ChunkInfo.All.FirstOrDefault(c => c.ChunkType == chunk.GetType()).BinaryTypes[0], chunk.Name, (uint)chunk.Buffer.Length);
+				ChunkInfo chunkInfo = ChunkInfo.All.FirstOrDefault(c => c.ChunkType == chunk.GetType());
+				CompressedChunk compressedChunk = (CompressedChunk)Activator.CreateInstance(chunkInfo.CompressedType, (byte)chunkInfo.BinaryTypes[0], chunk.Name, (uint)chunk.Buffer.Length);
 				compressedChunk.Compress(chunk);
 				compressedChunks.Add(compressedChunk);
 			}
@@ -40,7 +41,7 @@ namespace DevilDaggersAssetCore.Compression
 			using MemoryStream dataStream = new MemoryStream();
 			foreach (CompressedChunk compressedChunk in compressedChunks)
 			{
-				tocStream.Write(Encoding.Default.GetBytes(compressedChunk.Name), 0, compressedChunk.Name.Length);
+				tocStream.Write(Encoding.Default.GetBytes($"{compressedChunk.Name}\0"), 0, compressedChunk.Name.Length + 1); // + 1 to include null terminator.
 				tocStream.Write(new[] { compressedChunk.Type }, 0, sizeof(byte));
 				tocStream.Write(BitConverter.GetBytes(compressedChunk.Buffer.Length), 0, sizeof(uint));
 
@@ -68,20 +69,31 @@ namespace DevilDaggersAssetCore.Compression
 			if (sourceFileBytes[0] != ddIdentifier)
 				throw new Exception($"Invalid file format. The magic number value is incorrect:\n\nHeader value 1: {sourceFileBytes[0]} should be {ddIdentifier}");
 
-			ushort tocLength = BitConverter.ToUInt16(sourceFileBytes, 1);
-			byte[] tocBuffer = new byte[tocLength];
-			Buffer.BlockCopy(sourceFileBytes, 3, tocBuffer, 0, tocLength);
+			ushort cddTocLength = BitConverter.ToUInt16(sourceFileBytes, 1);
+			byte[] cddTocBuffer = new byte[cddTocLength];
+			Buffer.BlockCopy(sourceFileBytes, 3, cddTocBuffer, 0, cddTocLength);
 
-			List<CompressedChunk> compressedChunks = ReadChunks(tocBuffer);
+			List<CompressedChunk> compressedChunks = ReadChunks(cddTocBuffer);
+
+			int cddDataStart = 3 + cddTocLength;
+			List<AbstractResourceChunk> chunks = new List<AbstractResourceChunk>();
 			foreach (CompressedChunk compressedChunk in compressedChunks)
 			{
-				byte[] chunkBytes = compressedChunk.Extract();
+				compressedChunk.Buffer = new byte[compressedChunk.Size];
+				Buffer.BlockCopy(sourceFileBytes, cddDataStart, compressedChunk.Buffer, 0, (int)compressedChunk.Size);
+				AbstractResourceChunk chunk = compressedChunk.Extract();
+				chunks.Add(chunk);
 			}
+
+			ResourceFileHandler handler = new ResourceFileHandler(BinaryFileType.Dd);
+			handler.CreateTocStream(chunks, out byte[] tocBuffer, out Dictionary<AbstractResourceChunk, long> startOffsetBytePositions);
+			byte[] assetBuffer = handler.CreateAssetStream(BinaryFileType.Dd.ToString().ToLower(), chunks, tocBuffer, startOffsetBytePositions);
+			return handler.CreateBinary(tocBuffer, assetBuffer);
 		}
 
 		private static List<CompressedChunk> ReadChunks(byte[] tocBuffer)
 		{
-			List<CompressedChunk> chunks = new List<CompressedChunk>();
+			List<CompressedChunk> compressedChunks = new List<CompressedChunk>();
 
 			int i = 0;
 			while (i < tocBuffer.Length - 5) // TODO: Might still get out of range maybe... (5 bytes per chunk, but name length is variable)
@@ -95,10 +107,22 @@ namespace DevilDaggersAssetCore.Compression
 				uint size = BitConverter.ToUInt32(tocBuffer, i);
 				i += sizeof(uint);
 
-				chunks.Add(new CompressedChunk(type, name, size));
+				// TODO: Use Activator.CreateInstance.
+				CompressedChunk compressedChunk;
+				if (type == ChunkInfo.Texture.BinaryTypes[0])
+					compressedChunk = new TextureCompressedChunk(type, name, size);
+				else if (type == ChunkInfo.Model.BinaryTypes[0])
+					compressedChunk = new ModelCompressedChunk(type, name, size);
+				else if (type == ChunkInfo.Shader.BinaryTypes[0])
+					compressedChunk = new ShaderCompressedChunk(type, name, size);
+				// TODO: Implement class hierarchy distinction between CompressedChunk and a new AbstractCompressedChunk.
+				else
+					compressedChunk = new CompressedChunk(type, name, size);
+
+				compressedChunks.Add(compressedChunk);
 			}
 
-			return chunks;
+			return compressedChunks;
 		}
 	}
 }
