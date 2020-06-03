@@ -52,7 +52,7 @@ namespace DevilDaggersAssetCore.Compression
 		// TODO: Use C# 9 covariant returns.
 		public override AbstractResourceChunk Extract()
 		{
-			Image image = Image.FromStream(new MemoryStream(Buffer));
+			Image image = Image.FromStream(new MemoryStream(Buffer)); // TODO: Fix GDI+ error. Or use FLIF instead of PNG.
 			TextureChunk textureChunk = new TextureChunk(Name, 0U, 0U, 0U);
 			textureChunk.MakeBinary(image);
 
