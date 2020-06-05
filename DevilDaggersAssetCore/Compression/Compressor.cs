@@ -20,7 +20,7 @@ namespace DevilDaggersAssetCore.Compression
 			ResourceFileHandler handler = new ResourceFileHandler(BinaryFileType.Dd);
 			handler.ValidateFile(sourceFileBytes);
 			byte[] tocBuffer = handler.ReadTocBuffer(sourceFileBytes);
-			List<AbstractChunk> chunks = handler.ReadChunks(tocBuffer).Where(c => c.Size != 0).ToList(); // Filter empty chunks (garbage in core file TOC buffer).
+			List<AbstractChunk> chunks = handler.ReadChunks(tocBuffer).Where(c => c.Size != 0).ToList(); // Filter empty chunks (garbage in TOC buffer).
 			foreach (AbstractResourceChunk chunk in chunks)
 			{
 				byte[] buf = new byte[chunk.Size];
