@@ -88,13 +88,24 @@ namespace DevilDaggersAssetEditor.Code.FileTabControlHandlers
 				progressWindow.Show();
 				await Task.Run(() =>
 				{
-					FileHandler.ExtractBinary(
-						openDialog.FileName,
-						folderDialog.FileName,
-						FileHandler.BinaryFileType,
-						new Progress<float>(value => App.Instance.Dispatcher.Invoke(() => progressWindow.ProgressBar.Value = value)),
-						new Progress<string>(value => App.Instance.Dispatcher.Invoke(() => progressWindow.ProgressDescription.Text = value)));
-					App.Instance.Dispatcher.Invoke(() => progressWindow.Finish());
+					try
+					{
+						FileHandler.ExtractBinary(
+							openDialog.FileName,
+							folderDialog.FileName,
+							FileHandler.BinaryFileType,
+							new Progress<float>(value => App.Instance.Dispatcher.Invoke(() => progressWindow.ProgressBar.Value = value)),
+							new Progress<string>(value => App.Instance.Dispatcher.Invoke(() => progressWindow.ProgressDescription.Text = value)));
+						App.Instance.Dispatcher.Invoke(() => progressWindow.Finish());
+					}
+					catch (Exception ex)
+					{
+						App.Instance.Dispatcher.Invoke(() =>
+						{
+							App.Instance.ShowError("Extracting binary failed", $"Extracting binary failed during the execution of \"{progressWindow.ProgressDescription.Text}\".", ex);
+							progressWindow.Error();
+						});
+					}
 				});
 			}
 		}
@@ -117,7 +128,7 @@ namespace DevilDaggersAssetEditor.Code.FileTabControlHandlers
 			if (!result.HasValue || !result.Value)
 				return;
 
-			ProgressWindow progressWindow = new ProgressWindow($"Turning '{FileHandler.BinaryFileType.ToString().ToLower()}' into binary data...");
+			ProgressWindow progressWindow = new ProgressWindow($"Turning files into '{FileHandler.BinaryFileType.ToString().ToLower()}' binary...");
 			progressWindow.Show();
 			await Task.Run(() =>
 			{

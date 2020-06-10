@@ -27,6 +27,19 @@ namespace DevilDaggersAssetEditor.Gui.UserControls
 		{
 			InitializeComponent();
 
+			// TODO: Enable when loading screen is implemented.
+			//if (VersionHandler.Instance.VersionResult.IsUpToDate.HasValue && !VersionHandler.Instance.VersionResult.IsUpToDate.Value)
+			//{
+			//	HelpItem.Header += " (Update available)";
+			//	HelpItem.FontWeight = FontWeights.Bold;
+
+			//	foreach (MenuItem menuItem in HelpItem.Items)
+			//		menuItem.FontWeight = FontWeights.Normal;
+
+			//	UpdateItem.Header = "Update available";
+			//	UpdateItem.FontWeight = FontWeights.Bold;
+			//}
+
 			tabHandlers = App.Instance.Assembly
 				.GetTypes()
 				.Where(t => t.BaseType == typeof(AbstractFileTabControlHandler) && !t.IsAbstract)
@@ -99,6 +112,12 @@ namespace DevilDaggersAssetEditor.Gui.UserControls
 			{
 				App.Instance.ShowError("Changelog not retrieved", "The changelog has not been retrieved from DevilDaggers.info.");
 			}
+		}
+
+		private void Help_Click(object sender, RoutedEventArgs e)
+		{
+			HelpWindow helpWindow = new HelpWindow();
+			helpWindow.ShowDialog();
 		}
 
 		private void SourceCode_Click(object sender, RoutedEventArgs e) => Process.Start(UrlUtils.SourceCodeUrl(App.ApplicationName));

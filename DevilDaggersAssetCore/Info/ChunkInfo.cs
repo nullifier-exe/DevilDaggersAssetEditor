@@ -16,7 +16,7 @@ namespace DevilDaggersAssetCore.Info
 			assetType: typeof(ModelAsset),
 			userAssetType: typeof(ModelUserAsset),
 			compressedType: typeof(CompressedChunk),
-			binaryTypes: new ushort[] { 0x01 },
+			binaryType: 0x01,
 			fileExtension: ".obj",
 			folderName: "Models",
 			dataName: "Model",
@@ -31,7 +31,7 @@ namespace DevilDaggersAssetCore.Info
 			assetType: typeof(TextureAsset),
 			userAssetType: typeof(TextureUserAsset),
 			compressedType: typeof(TextureCompressedChunk),
-			binaryTypes: new ushort[] { 0x02 },
+			binaryType: 0x02,
 			fileExtension: ".png",
 			folderName: "Textures",
 			dataName: "Texture",
@@ -46,7 +46,7 @@ namespace DevilDaggersAssetCore.Info
 			assetType: typeof(ShaderAsset),
 			userAssetType: typeof(ShaderUserAsset),
 			compressedType: typeof(CompressedChunk),
-			binaryTypes: new ushort[] { 0x10, 0x11 },
+			binaryType: 0x10,
 			fileExtension: ".glsl",
 			folderName: "Shaders",
 			dataName: "Shader",
@@ -61,7 +61,7 @@ namespace DevilDaggersAssetCore.Info
 			assetType: typeof(AudioAsset),
 			userAssetType: typeof(AudioUserAsset),
 			compressedType: typeof(CompressedChunk),
-			binaryTypes: new ushort[] { 0x20 },
+			binaryType: 0x20,
 			fileExtension: ".wav",
 			folderName: "Audio",
 			dataName: "Audio",
@@ -76,7 +76,7 @@ namespace DevilDaggersAssetCore.Info
 			assetType: typeof(ModelBindingAsset),
 			userAssetType: typeof(ModelBindingUserAsset),
 			compressedType: typeof(CompressedChunk),
-			binaryTypes: new ushort[] { 0x80 },
+			binaryType: 0x80,
 			fileExtension: ".txt",
 			folderName: "Model Bindings",
 			dataName: "Model binding",
@@ -91,7 +91,7 @@ namespace DevilDaggersAssetCore.Info
 			assetType: typeof(ParticleAsset),
 			userAssetType: typeof(ParticleUserAsset),
 			compressedType: typeof(CompressedChunk),
-			binaryTypes: null,
+			binaryType: 0x00,
 			fileExtension: ".bin",
 			folderName: "Particles",
 			dataName: "Particle",
@@ -107,7 +107,7 @@ namespace DevilDaggersAssetCore.Info
 		public Type AssetType { get; }
 		public Type UserAssetType { get; }
 		public Type CompressedType { get; }
-		public ushort[] BinaryTypes { get; }
+		public byte BinaryType { get; }
 		public string FileExtension { get; }
 		public string FolderName { get; }
 		public string DataName { get; }
@@ -115,7 +115,7 @@ namespace DevilDaggersAssetCore.Info
 		public byte ColorG { get; }
 		public byte ColorB { get; }
 
-		public ChunkInfo(BinaryFileType binaryFileType, Type chunkType, HeaderInfo headerInfo, Type assetType, Type userAssetType, Type compressedType, ushort[] binaryTypes, string fileExtension, string folderName, string dataName, byte colorR, byte colorG, byte colorB)
+		public ChunkInfo(BinaryFileType binaryFileType, Type chunkType, HeaderInfo headerInfo, Type assetType, Type userAssetType, Type compressedType, byte binaryType, string fileExtension, string folderName, string dataName, byte colorR, byte colorG, byte colorB)
 		{
 			BinaryFileType = binaryFileType;
 			ChunkType = chunkType;
@@ -123,7 +123,7 @@ namespace DevilDaggersAssetCore.Info
 			AssetType = assetType;
 			UserAssetType = userAssetType;
 			CompressedType = compressedType;
-			BinaryTypes = binaryTypes;
+			BinaryType = binaryType;
 			FileExtension = fileExtension;
 			FolderName = folderName;
 			DataName = dataName;
